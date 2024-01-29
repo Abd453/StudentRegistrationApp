@@ -10,7 +10,7 @@ import javax.swing.table.DefaultTableModel;
 class StudentManagementApplication extends JFrame {
     private JTabbedPane tabbedPane;
 
-    public StudentManagementApplication() {
+    public  StudentManagementApplication() {
         setTitle("Student Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -27,12 +27,10 @@ class StudentManagementApplication extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                int choice = JOptionPane.showConfirmDialog(StudentManagementApplication.this,
-                        "Are you sure you want to log out?", "Logout", JOptionPane.YES_NO_OPTION);
+                int choice = JOptionPane.showConfirmDialog(StudentManagementApplication.this,"Are you sure you want to log out?", "Logout", JOptionPane.YES_NO_OPTION);
                 if (choice == JOptionPane.YES_OPTION) {
-                    // Handle the logout action here, e.g., by closing the current window or
-                    // returning to a login page.
-                    dispose();
+                    // Handle the logout action here, e.g., by closing the current window or returning to a login page.
+                   dispose();
                     LoginPage.createAndShowUI();// Close the current window
                 }
             }
@@ -80,19 +78,20 @@ class StudentRegistrationPanel2 extends JPanel {
 
         // Department (ComboBox)
         JLabel departmentLabel = new JLabel("Department");
-        String[] departmentOptions = { "CSE", "SE", "ECE", "EPCE" };
+        String[] departmentOptions = {"CSE", "SE", "ECE", "EPCE"};
         departmentComboBox = new JComboBox<>(departmentOptions);
         // Semester (ComboBox)
         JLabel semesterLabel = new JLabel("Semester");
-        String[] semesterOptions = { "1", "2", "3", "4", "5", "6", "7" };
+        String[] semesterOptions = {"1", "2", "3", "4", "5", "6", "7"};
         semesterComboBox = new JComboBox<>(semesterOptions);
 
         // Courses (Checkbox)
         JLabel courseLabel = new JLabel("Courses");
-        coursesPanel = new JPanel(); // Panel to hold the course checkboxes
+        coursesPanel = new JPanel();  // Panel to hold the course checkboxes
         coursesPanel.setLayout(new GridLayout(0, 1));
 
-        // Address
+
+// Address
         JLabel addressLabel = new JLabel("Address");
         JTextField addressField = new JTextField(20);
 
@@ -126,17 +125,13 @@ class StudentRegistrationPanel2 extends JPanel {
                         }
                     }
                 }
-                if (fullName.isEmpty() || studentID.isEmpty() || selectedDepartment == null || selectedSemester == null
-                        || address.isEmpty() || contact.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields before registering.", "Input Error",
-                            JOptionPane.ERROR_MESSAGE);
+                if (fullName.isEmpty() || studentID.isEmpty() || selectedDepartment == null || selectedSemester == null || address.isEmpty() || contact.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields before registering.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 } else {
                     // Insert data into the database
-                    try (Connection conn = DriverManager
-                            .getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "123456")) {
+                    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "AbdallahPASS")) {
                         String sql = "INSERT INTO Registeredstudent (student_id_number, full_name, department, semester, address, contact) VALUES (?, ?, ?, ?, ?, ?)";
-                        try (PreparedStatement pstmt = conn.prepareStatement(sql,
-                                PreparedStatement.RETURN_GENERATED_KEYS)) {
+                        try (PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
                             pstmt.setString(1, studentID);
                             pstmt.setString(2, fullName);
                             pstmt.setString(3, selectedDepartment);
@@ -159,10 +154,10 @@ class StudentRegistrationPanel2 extends JPanel {
                             }
                         }
                     } catch (SQLException ex) {
+                         //JOptionPane.showMessageDialog(null, "Error registering the student: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
                         ex.printStackTrace();
 
-                        JOptionPane.showMessageDialog(null, "Error registering the student: " + ex.getMessage(),
-                                "Database Error", JOptionPane.ERROR_MESSAGE);
+                       
                     }
                 }
             }
@@ -182,6 +177,7 @@ class StudentRegistrationPanel2 extends JPanel {
                 updateCourseCheckboxes();
             }
         });
+
 
         constraints.gridx = 0;
         constraints.gridy = 0;
@@ -224,9 +220,10 @@ class StudentRegistrationPanel2 extends JPanel {
         registrationPanel.add(registerButton, constraints);
 
         add(registrationPanel, BorderLayout.CENTER);
-
+        // ... (The code for the StudentRegistrationPanel as you provided)
     }
 
+    // ... (The rest of the code for StudentRegistrationPanel as you provided)
     private void updateCourseCheckboxes() {
         String selectedDepartment = (String) departmentComboBox.getSelectedItem();
         String selectedSemester = (String) semesterComboBox.getSelectedItem();
@@ -257,8 +254,7 @@ class StudentRegistrationPanel2 extends JPanel {
             return courseCheckboxes;
         }
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root",
-                "123456")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "AbdallahPASS")) {
             String sql = "SELECT course_code, course_name FROM base_course WHERE department_name = ? AND semester = ?";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, department);
@@ -279,8 +275,8 @@ class StudentRegistrationPanel2 extends JPanel {
         return courseCheckboxes;
     }
 
-    private void insertCourseRegistrations(Connection conn, int studentId, List<String> selectedCourses)
-            throws SQLException {
+
+    private void insertCourseRegistrations(Connection conn, int studentId, List<String> selectedCourses) throws SQLException {
         String sql = "INSERT INTO studentcourseregistration (student_id_number, course_code, course_grade) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (String courseCode : selectedCourses) {
@@ -290,6 +286,12 @@ class StudentRegistrationPanel2 extends JPanel {
                 pstmt.executeUpdate();
             }
         }
+        catch (SQLException ex) {
+                         JOptionPane.showMessageDialog(null, "Error registering the student: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+
+                       
+                    }
     }
 }
 
@@ -332,16 +334,14 @@ class StudentResultsPanel extends JPanel {
                 displayCourseResults(studentId);
             }
         });
-
+        // ... (The code for the StudentResultsPanel as you provided)
     }
-
     private void displayCourseResults(String studentId) {
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("Course");
         model.addColumn("Grade");
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/studentregistration", "root",
-                "123456")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/studentregistration", "root", "AbdallahPASSl")) {
             String query = "SELECT course_code, course_grade FROM studentcourseregistration WHERE student_id_number = ?";
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, studentId);
@@ -350,7 +350,7 @@ class StudentResultsPanel extends JPanel {
             while (rs.next()) {
                 String courseCode = rs.getString("course_code");
                 String grade = rs.getString("course_grade");
-                model.addRow(new Object[] { courseCode, grade });
+                model.addRow(new Object[]{courseCode, grade});
             }
 
             resultTable.setModel(model);
@@ -360,8 +360,7 @@ class StudentResultsPanel extends JPanel {
 
         } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error connecting to the database: " + ex.getMessage(),
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error connecting to the database: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -385,11 +384,9 @@ class StudentResultsPanel extends JPanel {
     }
 
     private int getCreditHour(String courseCode) {
-        // Retrieve the credit hour for the given course code from your database or a
-        // predefined map.
+        // Retrieve the credit hour for the given course code from your database or a predefined map.
         // Replace this with your logic to fetch credit hours based on the course code.
-        // For simplicity, you can use a predefined map for course codes and credit
-        // hours.
+        // For simplicity, you can use a predefined map for course codes and credit hours.
         // Example: Map<String, Integer> creditHourMap = new HashMap<>();
         // int creditHour = creditHourMap.getOrDefault(courseCode, 0);
 
@@ -422,6 +419,5 @@ class StudentResultsPanel extends JPanel {
             default:
                 return 0.0; // Handle other grades or errors
         }
-
-    }
-}
+    // ... (The rest of the code for StudentResultsPanel as you provided)
+}}
