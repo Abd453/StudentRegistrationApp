@@ -33,7 +33,7 @@ class LoginPage {
 
         // Log in as
         JLabel userTypeLabel = new JLabel("Log in as:");
-        String[] userTypes = { "Admin", "Student" };
+        String[] userTypes = {"Admin", "Student"};
         JComboBox<String> userTypeComboBox = new JComboBox<>(userTypes);
 
         // Log in button
@@ -51,9 +51,13 @@ class LoginPage {
                 if (login(username, new String(password), userType)) {
                     JOptionPane.showMessageDialog(frame, "Login successful as " + userType);
                     frame.setVisible(false);
-                    if (userType == "Student") {
-                        Main.createAndShowGUI();
-                    } else {
+                    if (userType=="Student"){
+                      SwingUtilities.invokeLater(() -> {
+            StudentManagementApplication app = new StudentManagementApplication();
+            app.setVisible(true);
+        });
+                    }
+                    else{
                         SStudentDataEntryApp.createAndShowGUUI();
                     }
                 } else {
@@ -61,6 +65,7 @@ class LoginPage {
                 }
             }
         });
+
 
         constraints.gridx = 0;
         constraints.gridy = 0;
@@ -93,11 +98,11 @@ class LoginPage {
     private static boolean login(String username, String password, String userType) {
         String dbUrl = "jdbc:mysql://localhost:3306/studentregistration";
         String dbUser = "root";
-        String dbPassword = "0000";
+        String dbPassword = "Betelhem@sql";
 
         String query = "SELECT * FROM users WHERE username = ? AND password = ? AND userType = ?";
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
-                PreparedStatement pstmt = conn.prepareStatement(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setString(1, username);
             pstmt.setString(2, password);
             pstmt.setString(3, userType);
