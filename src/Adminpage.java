@@ -21,7 +21,8 @@ class SStudentDataEntryApp {
     static void createAndShowGUUI() {
         JFrame frame = new JFrame("Student Management System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(700, 500);
+        frame.setSize(800, 600);
+
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -36,13 +37,10 @@ class SStudentDataEntryApp {
         logoutButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Handle the logout action here, e.g., by closing the current window or
-                // returning to a login page.
-                int choice = JOptionPane.showConfirmDialog(frame, "Are you sure you want to log out?", "Logout",
-                        JOptionPane.YES_NO_OPTION);
+                // Handle the logout action here, e.g., by closing the current window or returning to a login page.
+                int choice = JOptionPane.showConfirmDialog(frame, "Are you sure you want to log out?", "Logout", JOptionPane.YES_NO_OPTION);
                 if (choice == JOptionPane.YES_OPTION) {
-                    // Handle the logout action here, e.g., by closing the current window or
-                    // returning to a login page.
+                    // Handle the logout action here, e.g., by closing the current window or returning to a login page.
                     frame.dispose();
                     LoginPage.createAndShowUI();// Close the current window
                 } // Close the current window
@@ -61,8 +59,8 @@ class SStudentDataEntryApp {
         frame.setVisible(true);
     }
 }
-
 class StudentDataEntryPanel extends JPanel {
+    private JComboBox<String> courseCodeComboBox;
 
     public StudentDataEntryPanel() {
         setLayout(new BorderLayout());
@@ -70,16 +68,15 @@ class StudentDataEntryPanel extends JPanel {
         JLabel idLabel = new JLabel("Student ID");
         JTextField idField = new JTextField(20);
 
-        JLabel courseCodeLabel = new JLabel("Course Code");
-        JTextField courseCodeField = new JTextField(20);
-
         JLabel gradeLabel = new JLabel("Grade");
-        String[] gradeOptions = { "A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D", "F" };
+        String[] gradeOptions = {"A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D", "F"};
         JComboBox<String> gradeComboBox = new JComboBox<>(gradeOptions);
 
         JLabel actionLabel = new JLabel("Action");
-        String[] actionOptions = { "Insert", "Update" };
+        String[] actionOptions = {"Insert", "Update"};
         JComboBox<String> actionComboBox = new JComboBox<>(actionOptions);
+
+        courseCodeComboBox = new JComboBox<>(fetchCourseCodesFromDatabase());
 
         JButton executeButton = new JButton("Execute");
         executeButton.setBackground(Color.BLUE);
@@ -89,13 +86,18 @@ class StudentDataEntryPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String studentID = idField.getText();
-                String courseCode = courseCodeField.getText();
+                String courseCode = (String) courseCodeComboBox.getSelectedItem();
                 String selectedGrade = (String) gradeComboBox.getSelectedItem();
                 String selectedAction = (String) actionComboBox.getSelectedItem();
 
-                String dbUrl = "jdbc:mysql://localhost:3306/studentregistration";
+                // Check if the student ID exists in the database
+                boolean exists = isStudentIDExists(studentID);
+                if (!exists) {
+                    JOptionPane.showMessageDialog(null, "Student ID does not exist in the database.", "Invalid Student ID", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    String dbUrl = "jdbc:mysql://localhost:3306/studentregistration";
                 String dbUser = "root";
-                String dbPassword = "123456";
+                String dbPassword = "Betelhem@sql";
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
                     if ("Insert".equals(selectedAction)) {
                         // Check if the record already exists
@@ -105,8 +107,7 @@ class StudentDataEntryPanel extends JPanel {
                             checkPstmt.setString(2, courseCode);
                             ResultSet resultSet = checkPstmt.executeQuery();
                             if (resultSet.next()) {
-                                JOptionPane.showMessageDialog(getParent(),
-                                        "Data already exists for the given ID and Course Code.");
+                                JOptionPane.showMessageDialog(getParent(), "Data already exists for the given ID and Course Code.");
                             } else {
                                 String insertSql = "INSERT INTO studentcourseregistration (student_id_number, course_code, course_grade) VALUES (?, ?, ?)";
                                 try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
@@ -145,14 +146,16 @@ class StudentDataEntryPanel extends JPanel {
                                     }
                                 }
                             } else {
-                                JOptionPane.showMessageDialog(getParent(),
-                                        "Data does not exist for the given ID and Course Code.");
+                                JOptionPane.showMessageDialog(getParent(), "Data does not exist for the given ID and Course Code.");
                             }
                         }
                     }
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(getParent(), "Error: " + ex.getMessage());
+                }
+                    // Student ID exists, proceed with inserting or updating the grade
+                    // Rest of the code for inserting or updating student grades
                 }
             }
         });
@@ -169,13 +172,14 @@ class StudentDataEntryPanel extends JPanel {
         constraints.anchor = GridBagConstraints.WEST;
         dataEntryPanel.add(idField, constraints);
 
+        JLabel courseCodeLabel = new JLabel("Course Code");
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.anchor = GridBagConstraints.WEST;
         dataEntryPanel.add(courseCodeLabel, constraints);
         constraints.gridx = 1;
         constraints.anchor = GridBagConstraints.WEST;
-        dataEntryPanel.add(courseCodeField, constraints);
+        dataEntryPanel.add(courseCodeComboBox, constraints);
 
         constraints.gridx = 0;
         constraints.gridy = 2;
@@ -202,7 +206,47 @@ class StudentDataEntryPanel extends JPanel {
         add(dataEntryPanel, BorderLayout.CENTER);
     }
 
+    private boolean isStudentIDExists(String studentID) {
+        boolean exists = false;
+
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
+            String sql = "SELECT COUNT(*) FROM Registeredstudent WHERE student_id_number = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, studentID);
+                ResultSet resultSet = pstmt.executeQuery();
+                if (resultSet.next() && resultSet.getInt(1) > 0) {
+                    exists = true;
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "An error occurred while checking the student ID.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return exists;
+    }
+    // Fetch course codes from the database and create an array
+    private String[] fetchCourseCodesFromDatabase() {
+        List<String> courseCodes = new ArrayList<>();
+
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
+            String sql = "SELECT course_code FROM base_course";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                ResultSet resultSet = pstmt.executeQuery();
+                while (resultSet.next()) {
+                    String courseCode = resultSet.getString("course_code");
+                    courseCodes.add(courseCode);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return courseCodes.toArray(new String[0]);
+    }
 }
+
+
 
 class StudentRegistrationPanel extends JPanel {
     private JComboBox<String> departmentComboBox;
@@ -230,19 +274,20 @@ class StudentRegistrationPanel extends JPanel {
 
         // Department (ComboBox)
         JLabel departmentLabel = new JLabel("Department");
-        String[] departmentOptions = { "CSE", "SE", "ECE", "EPCE" };
+        String[] departmentOptions = {"CSE", "SE", "ECE", "EPCE"};
         departmentComboBox = new JComboBox<>(departmentOptions);
         // Semester (ComboBox)
         JLabel semesterLabel = new JLabel("Semester");
-        String[] semesterOptions = { "1", "2", "3", "4", "5", "6", "7" };
+        String[] semesterOptions = {"1", "2", "3", "4", "5", "6", "7"};
         semesterComboBox = new JComboBox<>(semesterOptions);
 
         // Courses (Checkbox)
         JLabel courseLabel = new JLabel("Courses");
-        coursesPanel = new JPanel(); // Panel to hold the course checkboxes
+        coursesPanel = new JPanel();  // Panel to hold the course checkboxes
         coursesPanel.setLayout(new GridLayout(0, 1));
 
-        // Address
+
+// Address
         JLabel addressLabel = new JLabel("Address");
         JTextField addressField = new JTextField(20);
 
@@ -268,6 +313,7 @@ class StudentRegistrationPanel extends JPanel {
                 List<String> selectedCourses = new ArrayList<>();
 
                 Component[] components = coursesPanel.getComponents();
+                
                 for (Component component : components) {
                     if (component instanceof JCheckBox) {
                         JCheckBox courseCheckbox = (JCheckBox) component;
@@ -276,17 +322,13 @@ class StudentRegistrationPanel extends JPanel {
                         }
                     }
                 }
-                if (fullName.isEmpty() || studentID.isEmpty() || selectedDepartment == null || selectedSemester == null
-                        || address.isEmpty() || contact.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields before registering.", "Input Error",
-                            JOptionPane.ERROR_MESSAGE);
+                if (fullName.isEmpty() || studentID.isEmpty() || selectedDepartment == null || selectedSemester == null || address.isEmpty() || contact.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields before registering.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 } else {
                     // Insert data into the database
-                    try (Connection conn = DriverManager
-                            .getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "123456")) {
+                    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
                         String sql = "INSERT INTO Registeredstudent (student_id_number, full_name, department, semester, address, contact) VALUES (?, ?, ?, ?, ?, ?)";
-                        try (PreparedStatement pstmt = conn.prepareStatement(sql,
-                                PreparedStatement.RETURN_GENERATED_KEYS)) {
+                        try (PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
                             pstmt.setString(1, studentID);
                             pstmt.setString(2, fullName);
                             pstmt.setString(3, selectedDepartment);
@@ -302,17 +344,17 @@ class StudentRegistrationPanel extends JPanel {
                                     generatedKey = generatedKeys.getInt(1);
                                 }
                                 pstmt.close();
-                                insertCourseRegistrations(conn, generatedKey, selectedCourses);
                                 JOptionPane.showMessageDialog(null, "Student registered successfully!");
+
+                                insertCourseRegistrations(conn, generatedKey, selectedCourses);
                             } else {
                                 JOptionPane.showMessageDialog(null, "Student registration failed.");
                             }
                         }
                     } catch (SQLException ex) {
-                        ex.printStackTrace();
+                        //ex.printStackTrace();
 
-                        JOptionPane.showMessageDialog(null, "Error registering the student: " + ex.getMessage(),
-                                "Database Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Error registering the student: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
@@ -332,6 +374,7 @@ class StudentRegistrationPanel extends JPanel {
                 updateCourseCheckboxes();
             }
         });
+
 
         constraints.gridx = 0;
         constraints.gridy = 0;
@@ -378,27 +421,27 @@ class StudentRegistrationPanel extends JPanel {
     }
 
     // ... (The rest of the code for StudentRegistrationPanel as you provided)
-    private void updateCourseCheckboxes() {
-        String selectedDepartment = (String) departmentComboBox.getSelectedItem();
-        String selectedSemester = (String) semesterComboBox.getSelectedItem();
-        List<JCheckBox> courseCheckboxes = fetchCoursesFromDatabase(selectedDepartment, selectedSemester);
-        coursesPanel.removeAll();
-        JScrollPane scrollPane = new JScrollPane();
-        JPanel scrollContent = new JPanel();
-        scrollContent.setLayout(new BoxLayout(scrollContent, BoxLayout.Y_AXIS));
+     private void updateCourseCheckboxes() {
+    String selectedDepartment = (String) departmentComboBox.getSelectedItem();
+    String selectedSemester = (String) semesterComboBox.getSelectedItem();
+    List<JCheckBox> courseCheckboxes = fetchCoursesFromDatabase(selectedDepartment, selectedSemester);
 
-        for (JCheckBox courseCheckbox : courseCheckboxes) {
-            coursesPanel.add(courseCheckbox);
-        }
-        scrollPane.setViewportView(scrollContent);
-        coursesPanel.removeAll();
-        coursesPanel.setLayout(new BorderLayout());
-        coursesPanel.add(scrollPane, BorderLayout.CENTER);
-        coursesPanel.revalidate();
-        coursesPanel.repaint();
-        coursesPanel.revalidate();
-        coursesPanel.repaint();
+    
+
+    coursesPanel.removeAll();
+
+    // Use BoxLayout to arrange checkboxes vertically
+    coursesPanel.setLayout(new BoxLayout(coursesPanel, BoxLayout.Y_AXIS));
+
+    for (JCheckBox courseCheckbox : courseCheckboxes) {
+        coursesPanel.add(courseCheckbox);
+        System.out.println("Added course checkbox: " + courseCheckbox.getText());
     }
+
+    // Revalidate and repaint the coursesPanel
+    coursesPanel.revalidate();
+    coursesPanel.repaint();
+}
 
     private List<JCheckBox> fetchCoursesFromDatabase(String department, String semester) {
         List<JCheckBox> courseCheckboxes = new ArrayList<>();
@@ -408,8 +451,7 @@ class StudentRegistrationPanel extends JPanel {
             return courseCheckboxes;
         }
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root",
-                "123456")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
             String sql = "SELECT course_code, course_name FROM base_course WHERE department_name = ? AND semester = ?";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, department);
@@ -430,8 +472,8 @@ class StudentRegistrationPanel extends JPanel {
         return courseCheckboxes;
     }
 
-    private void insertCourseRegistrations(Connection conn, int studentId, List<String> selectedCourses)
-            throws SQLException {
+
+    private void insertCourseRegistrations(Connection conn, int studentId, List<String> selectedCourses) throws SQLException {
         String sql = "INSERT INTO studentcourseregistration (student_id_number, course_code, course_grade) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (String courseCode : selectedCourses) {
@@ -475,8 +517,7 @@ class StudentSearchPanel extends JPanel {
 
     private void updateStudentTable(String searchTerm, JTable studentTable) {
         // Connect to the database and fetch student data
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration",
-                "root", "123456")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
             String query = "SELECT student_id, full_name, department FROM Registeredstudent WHERE student_id_number LIKE ?";
 
             PreparedStatement preparedStatement = connection.prepareStatement(query);
