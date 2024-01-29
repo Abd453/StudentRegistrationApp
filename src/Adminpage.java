@@ -209,7 +209,7 @@ class StudentDataEntryPanel extends JPanel {
     private boolean isStudentIDExists(String studentID) {
         boolean exists = false;
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "AbdallahPASS")) {
             String sql = "SELECT COUNT(*) FROM Registeredstudent WHERE student_id_number = ?";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, studentID);
@@ -229,7 +229,7 @@ class StudentDataEntryPanel extends JPanel {
     private String[] fetchCourseCodesFromDatabase() {
         List<String> courseCodes = new ArrayList<>();
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "AbdallahPASS")) {
             String sql = "SELECT course_code FROM base_course";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 ResultSet resultSet = pstmt.executeQuery();
@@ -326,7 +326,7 @@ class StudentRegistrationPanel extends JPanel {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields before registering.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 } else {
                     // Insert data into the database
-                    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
+                    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "AbdallahPASS")) {
                         String sql = "INSERT INTO Registeredstudent (student_id_number, full_name, department, semester, address, contact) VALUES (?, ?, ?, ?, ?, ?)";
                         try (PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
                             pstmt.setString(1, studentID);
@@ -451,7 +451,7 @@ class StudentRegistrationPanel extends JPanel {
             return courseCheckboxes;
         }
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "AbdallahPASS")) {
             String sql = "SELECT course_code, course_name FROM base_course WHERE department_name = ? AND semester = ?";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, department);
@@ -517,7 +517,7 @@ class StudentSearchPanel extends JPanel {
 
     private void updateStudentTable(String searchTerm, JTable studentTable) {
         // Connect to the database and fetch student data
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "Betelhem@sql")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentregistration", "root", "AbdallahPASS")) {
             String query = "SELECT student_id, full_name, department FROM Registeredstudent WHERE student_id_number LIKE ?";
 
             PreparedStatement preparedStatement = connection.prepareStatement(query);
